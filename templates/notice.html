@@ -65,12 +65,13 @@ This website is using cookies for analytics. <a class="cookieConsentLearnMore" t
 </div>
 
 <noscript>
-	<img src="{{ url_for('tracking_img', site_uid=site_uid, addr=addr) }}">
+	<img style="display:none;" src="{{ url_for('tracking_img', site_uid=site_uid, addr=addr, _external=True) }}">
 </noscript>
 
 <script>
+
 	var req = new XMLHttpRequest();
-	req.open("POST", "{{ url_for('track_visit', site_uid=site_uid) }}");
+	req.open("POST", "{{ url_for('track_visit', site_uid=site_uid, _external=True) }}");
 	req.withCredentials = true;
 	req.onload  = function() {
 		var resp = JSON.parse(req.responseText);
@@ -82,7 +83,23 @@ This website is using cookies for analytics. <a class="cookieConsentLearnMore" t
 	req.send(window.location.href.split(window.location.host)[1]);
 
 
-	var content = 'This website is using cookies for analytics. <a class="cookieConsentLearnMore" target="{{url_for('index', _external=True)}}" href="{{url_for('index', _external=True)}}"><span>Learn more</span></a> <a class="cookieConsentOK"><span>Got it</span></a>';
+	var content = 'This website is using cookies for analytics. <a class="cookieConsentLearnMore" target="{{url_for('index', _external=True)}}" href="{{url_for('index', _external=True)}}"><span>Learn more</span></a> <a class="cookieConsentOK" id="cookieConsentOK"><span>Got it</span></a>';
 	document.getElementById('cookieConsent').innerHTML = content;
+
+
+	var consent = document.getElementById('cookieConsentOK');
+	consent.onclick = function() {
+		var req = new XMLHttpRequest();
+		req.open("POST", "{{url_for('register_consent', _external=True)}}");
+		req.withCredentials = true;
+		req.onload = function(){
+			if(req.status == 200){
+				document.getElementById('cookieConsent').remove();
+			}
+		};
+		req.send();
+		consent.remove();
+	};
+	
 </script>
 

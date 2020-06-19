@@ -33,7 +33,7 @@ class User:
 #            return {}
         if self.is_dntcookie_user:
             return {'no-track': '1'}
-        return {'user_id': self.user.uid, 'no-track': '0', 'consent': self.has_consented}
+        return {'user_id': self.user.uid, 'no-track': '0', 'consent': '1' if self.has_consented else '0'}
 
     @staticmethod
     def anonymize_ip(ip_addr):

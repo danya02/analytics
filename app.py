@@ -48,7 +48,17 @@ def apply_cookies(resp, user):
 @app.route('/')
 def index():
     user = get_user()
-    return apply_cookies(render_template('index.html', user=user, site_uid='845087d3-45b0-44ec-83a6-6d3930a99b04', endpoint='/'), user)
+    return apply_cookies(render_template('index.html', user=user, site_uid='845087d3-45b0-44ec-83a6-6d3930a99b04', addr='index/slash/slashy'), user)
+
+@app.route('/consent', methods=['POST'])
+def register_consent():
+    cookies = dict(request.cookies)
+    cookies.update({'consent': '1'})
+    class Wrap:
+        def __init__(self, cookies):
+            self.cookies = cookies
+    return apply_cookies('', Wrap(cookies))
+
 
 def transparent_pixel():
     compr = ['89504e470d0a1a0a', 7, 'd49484452', 7, '1', 7, '10804', 6, 'b51c0c02', 7, 'b49444154789c63626', 8, '9', 3,
@@ -60,15 +70,15 @@ def transparent_pixel():
         else:
             line += i
     num = int(line, 16)
-    data = num.to_bytes(len(line), 'big')
+    data = num.to_bytes(len(line)//2, 'big')
     return data
 
 
-@app.route('/site/<uuid:site_uid>/endpoint/<addr>')
+@app.route('/site/<uuid:site_uid>/endpoint/<path:addr>')
 def tracking_img(site_uid, addr):
     user = get_user()
     try:
-        user.add_visit(side_uid, addr)
+        user.add_visit(site_uid, addr)
         resp = Response(transparent_pixel(), mimetype='image/png')
         return apply_cookies(resp, user)
     except FileNotFoundError:
@@ -112,3 +122,7 @@ def alter_site(uid):
     site.url = request.form['url']
     site.save()
     return redirect(url_for('view_site', uid=uid))
+
+@app.route('/test')
+def test():
+    return Response(''.join([f'alert({repr(i)});' for i in [(v, request.cookies[v]) for v in request.cookies]]), mimetype='text/javascript')
