@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Sites</title>
+	</head>
+	<body>
+		<h1>Sites</h1>
+		<hr><hr>
+		{% for site in Site.select() %}
+
+		<a href="{{ url_for('view_site', uid=site.uid) }}">
+			<p>Name: {{site.name}}</p>
+			<p>URL: {{site.url}}</p>
+		</a>
+
+		<hr>
+		{% endfor %}
+
+		<form method="post" action="{{ url_for('add_site') }}">
+			<p> Name: <input type="text" name="name" /> </p>
+			<p> URL: <input type="url" name="url" /> </p>
+			<p> <input type="submit" value="Add site" /> </p>
+		</form>
+</html>

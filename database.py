@@ -19,7 +19,6 @@ class UserModel(MyModel):
 class Site(MyModel):
     url = CharField(unique=True)
     name = CharField()
-    description = TextField()
     uid = UUIDField(default=uuid.uuid4, unique=True)
 
 class Endpoint(MyModel):
@@ -37,5 +36,5 @@ class Visit(MyModel):
     date = DateTimeField(default=datetime.datetime.now)
 
 db.connect()
-db.create_tables([UserModel, Site, Session, Visit])
+db.create_tables([UserModel, Site, Session, Visit, Endpoint])
 db.close()

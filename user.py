@@ -53,7 +53,11 @@ class User:
         except Endpoint.DoesNotExist:
             endpoint = Endpoint.create(address=endpoint_addr, site=site)  # TODO: should this have protection against malicious addition of names?
 
-        latest_user_visit = Visit.select().join(Session).join(User).where(Session.user == self.user).order_by(Visit.date.desc()).get_or_none()
+        latest_user_visit = None
+        try:
+            latest_user_visit = Visit.select().join(Session).where(Session.user == self.user).order_by(Visit.date.desc()).get()
+        except DoesNotExist:
+            pass
         now = datetime.datetime.now()
         
         if latest_user_visit is not None and now.timestamp() - latest_user_visit.date.timestamp() < 15*60:  # visits less than 15 minutes apart are considered to be a part of the same session

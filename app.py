@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, Response, make_response, jsonify, abort
+from flask import Flask, render_template, request, Response, make_response, jsonify, abort, url_for, redirect
 from database import *
 import user
 import functools
 
 application = Flask(__name__)
 app = application
+
+app.secret_key = b'super secret super spoopy'
 
 @app.before_request
 def open_db():
@@ -22,12 +24,15 @@ def get_user():
 
 
 def apply_cookies(resp, user):
-    if len(resp)==1:
-        if not isinstance(resp[0], Response):
-            resp = make_response(resp[0])
-    else:
-        resp = make_response(*resp)
-    
+    if isinstance(resp, tuple):
+        if len(resp)==1:
+            if not isinstance(resp[0], Response):
+                resp = make_response(resp[0])
+        else:
+            resp = make_response(*resp)
+    elif not isinstance(resp, Response):
+        resp = make_response(resp)
+
     to_set = set(user.cookies)
     existing = set(request.cookies)
     to_unset = existing.difference(to_set)
@@ -43,7 +48,7 @@ def apply_cookies(resp, user):
 @app.route('/')
 def index():
     user = get_user()
-    return apply_cookies((render_template('index.html', user=user),), user)
+    return apply_cookies(render_template('index.html', user=user, site_uid='845087d3-45b0-44ec-83a6-6d3930a99b04', endpoint='/'), user)
 
 def transparent_pixel():
     compr = ['89504e470d0a1a0a', 7, 'd49484452', 7, '1', 7, '10804', 6, 'b51c0c02', 7, 'b49444154789c63626', 8, '9', 3,
@@ -65,7 +70,7 @@ def tracking_img(site_uid, addr):
     try:
         user.add_visit(side_uid, addr)
         resp = Response(transparent_pixel(), mimetype='image/png')
-        return resp
+        return apply_cookies(resp, user)
     except FileNotFoundError:
         return abort(404)
 
@@ -74,8 +79,36 @@ def track_visit(site_uid):
     user = get_user()
     try:
         user.add_visit(site_uid, request.data)
-        return jsonify({'uid': user.user.uid, 'consent': user.has_consented})
+        return apply_cookies(jsonify({'uid': user.user.uid, 'consent': user.has_consented}), user)
     except FileNotFoundError:
         return jsonify({'error': 'The site ID does not exist. This may be a misconfiguration of the website.'})
 
 
+
+@app.route('/admin/sites')
+def sites_config():
+    return render_template('admin-sites.html', Site=Site)
+
+@app.route('/admin/sites/new', methods=['POST'])
+def add_site():
+    site = Site.create(name=request.form['name'], url=request.form['url'])
+    return redirect(url_for('view_site', uid=site.uid))
+
+@app.route('/admin/sites/<uuid:uid>')
+def view_site(uid):
+    try:
+        site = Site.get(Site.uid == uid)
+    except Site.DoesNotExist:
+        return abort(404)
+    return render_template('admin-view-site.html', site=site)
+
+@app.route('/admin/sites/<uuid:uid>/alter', methods=['POST'])
+def alter_site(uid):
+    try:
+        site = Site.get(Site.uid == uid)
+    except Site.DoesNotExist:
+        return abort(404)
+    site.name = request.form['name']
+    site.url = request.form['url']
+    site.save()
+    return redirect(url_for('view_site', uid=uid))

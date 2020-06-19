@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+	<head>
+		<title>{{site.name}}</title>
+	</head>
+	<body>
+		<h1>Site {{site.name}}</h1>
+		<hr><hr>
+
+		<form method="post" action="{{ url_for('alter_site', uid=site.uid) }}">
+			<p> Name: <input type="text" name="name" value="{{site.name}}"/> </p>
+			<p> URL: <input type="url" name="url" value="{{site.url}}"/> </p>
+			<p> <input type="submit" value="Alter site" /> </p>
+		</form>
+	</body>
+</html>
