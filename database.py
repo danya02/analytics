@@ -1,4 +1,5 @@
 from peewee import *
+import uuid
 
 import logging
 logger = logging.getLogger('peewee')
@@ -11,6 +12,10 @@ class MyModel(Model):
     class Meta:
         database = db
 
+class UserModel(MyModel):
+    uid = UUIDField(default=uuid.uuid4, unique=True)
+
+
 db.connect()
-db.create_tables([])
+db.create_tables([UserModel])
 db.close()
