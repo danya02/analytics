@@ -1,0 +1,88 @@
+<style>
+#cookieConsent {
+    background-color: rgba(150,20,20,0.8);
+    min-height: 26px;
+    font-size: 24px;
+    color: #fff;
+    line-height: 26px;
+    padding: 8px 0 8px 30px;
+    font-family: sans-serif;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+}
+#cookieConsent a {
+    color: #0ff;
+    text-decoration: none;
+}
+#closeCookieConsent {
+    float: right;
+    display: inline-block;
+    cursor: pointer;
+    height: 20px;
+    width: 20px;
+    margin: -15px 0 0 0;
+    font-weight: bold;
+}
+#closeCookieConsent:hover {
+    color: #FFF;
+}
+#cookieConsent a.cookieConsentOK {
+    background-color: hsl(96, 55%, 50%);
+    color: #000;
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0 20px;
+    cursor: pointer;
+    float: right;
+    margin: 0 60px 0 10px;
+}
+#cookieConsent a.cookieConsentLearnMore {
+    background-color: hsl(54, 65%, 50%);
+    color: #000;
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0 20px;
+    cursor: pointer;
+    float: right;
+    margin: 0 60px 0 10px;
+}
+#cookieConsent a span {
+    margin: 16px;
+}
+#cookieConsent a.cookieConsentOK:hover {
+    background-color: hsl(96, 55%, 45%);
+}
+#cookieConsent a.cookieConsentLearnMore:hover {
+    background-color: hsl(54, 65%, 45%);
+}
+</style>
+
+<div id="cookieConsent">
+This website is using cookies for analytics. <a class="cookieConsentLearnMore" target="{{url_for('index', _external=True)}}" href="{{url_for('index', _external=True)}}"><span>Learn more</span></a>
+</div>
+
+<noscript>
+	<img src="{{ url_for('tracking_img', site_uid=site_uid, addr=addr) }}">
+</noscript>
+
+<script>
+	var req = new XMLHttpRequest();
+	req.open("POST", "{{ url_for('track_visit', site_uid=site_uid) }}");
+	req.withCredentials = true;
+	req.onload  = function() {
+		var resp = JSON.parse(req.responseText);
+		if(resp.consent){
+			document.getElementById('cookieConsent').remove();
+		}
+	};
+	
+	req.send(window.location.href.split(window.location.host)[1]);
+
+
+	var content = 'This website is using cookies for analytics. <a class="cookieConsentLearnMore" target="{{url_for('index', _external=True)}}" href="{{url_for('index', _external=True)}}"><span>Learn more</span></a> <a class="cookieConsentOK"><span>Got it</span></a>';
+	document.getElementById('cookieConsent').innerHTML = content;
+</script>
+
